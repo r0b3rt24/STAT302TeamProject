@@ -1,0 +1,103 @@
+
+```{r}
+bldata=read.table("bldata.txt",header=T)
+plot(bldata,pch=20,main="dot plot")
+s=bldata$score
+w=bldata$weight
+#mean(s)
+#mean(w)
+#sd(s)
+#sd(w)
+hist(s,main="histogram of scores")
+hist(w,main="histogram of weights")
+#boxplot(s)
+#boxplot(w)
+#quantile(s,c(0.25,0.5,0.75))
+#quantile(w,0.5)
+#table(bldata)
+#prop.table(s)
+#cut(w, c(0,10,20), include.lowest=TRUE)
+lw=split(bldata, cut(bldata$weight, c(0,10,20), include.lowest=TRUE))
+#lw[[1]]
+
+m=mean(s) #mean score of all
+m1=mean(lw[[1]]$score) #mean score of using ball below or equal to 10
+m2=mean(lw[[2]]$score) #mean score of using ball above 10
+
+ls=split(bldata, cut(bldata$score, c(0,99,300), include.lowest=TRUE))
+p=length(ls[[2]]$score)/137 #total proportion of getting a 100+
+#length(ls[[1]]$score)/137
+
+ls1=split(lw[[1]],cut(lw[[1]]$score,c(0,99,300),include.lowest=TRUE))
+#use 10 or below, get 100+
+p1=length(ls1[[2]]$score)/(length(ls1[[1]]$score)+length(ls1[[2]]$score))
+#length(ls1[[2]]$score)/length(lw[[1]]$score)
+ls2=split(lw[[2]],cut(lw[[2]]$score,c(0,99,300),include.lowest=TRUE))
+#use 11 or above, get 100+
+p2=length(ls2[[2]]$score)/(length(ls2[[1]]$score)+length(ls2[[2]]$score))
+#length(ls1[[2]]$score)/length(lw[[2]]$score)
+n=length(s)
+stds=sd(s)
+```
+```{r}
+cat("H0: the mean score of the population is 100.\n")
+cat("H1: the mean score of the population is not 100.\n")
+zsc=(m-100)/(stds/sqrt(n))
+cat("z score for the score is: ", zsc, "\n")
+za2=-qnorm(0.025) #z a/2, a=0.95
+cat("use alpha = 0.95, z a/2 is: ", za2, "\n")
+ #z is smaller than za2, so H0 accepted, mean == 100
+cat("z is smaller than za2, so H0 accepted, mean == 100.\n ")
+ta2=qt(0.975,df=n-1)
+cat("Confidence Interval for mean score: (",m-ta2*stds/sqrt(n),m+ta2*stds/sqrt(n),")\n")
+#t.test(s, y = NULL, alternative = c("two.sided", "less", "greater"), mu = 100, paired =
+#FALSE, var.equal = FALSE, conf.level = 0.95)
+```
+
+```{r}
+X = length(ls[[2]]$score) #the number of trials that higher than 100
+p0 = 0.5 #Testing if the probability is larger than 0.5
+
+p = X/n #calculate p1
+
+z = -qnorm(0.025); #calculate the rejection area
+
+SEp = sqrt(p*(1-p)/n) #calculate the standard deviation 
+
+Z = (p-p0)/SEp #Calculate the actual Z value
+
+result = Z>z;
+cat("H0: Total probability of getting a 100 or above is 0.5\n")
+cat("H1: Total probability of getting a 100 or above is not 0.5\n")
+cat("Reject H0: ",result);
+cat("\n")
+#Calculate the confidence interval
+lowerBound = p-z*SEp;
+upperBound = p+z*SEp;
+
+cat("Confidence Interval: (",lowerBound," , ",upperBound,")")
+```
+
+
+```{r}
+n1=length(lw[[1]]$score)
+n2=length(lw[[2]]$score)
+cat("Confidence Interval for p1-p2: (",p1-p2-za2*sqrt(p1*(1-p1)/n1+p2*(1-p2)/n2),p1-p2+za2*sqrt(p1*(1-p1)/n1+p2*(1-p2)/n2),")\n")
+zsc2=(p1-p2)/(sqrt(p*(1-p))*sqrt(1/n1+1/n2))
+cat("z score for p1-p2 is: ", zsc2, "\n")
+za=-qnorm(0.05)
+cat("use alpha = 0.95, -z a is: ", -za, "\n")
+cat("zsc2 < -za, we reject H0 so that p1 < p2 is accepted.\n")
+#zsc2 < -za, we reject H0 so that p1 < p2 is accepted
+```
+
+```{r}
+std1=sd(lw[[1]]$score)
+std2=sd(lw[[2]]$score)
+cat("Confidence Interval for m1-m2: (",m1-m2-za2*sqrt(std1^2/n1+std2^2/n2),m1-m2+za2*sqrt(std1^2/n1+std2^2/n2),")\n")
+zsc3=(m1-m2)/sqrt(std1^2/n1+std2^2/n2)
+cat("z score for m1-m2 is: ", zsc3, "\n")
+cat("use alpha = 0.95, -z a is: ", -za, "\n") # Z<=-za, so the null hypo is rejected, so that m1 < m2
+cat("z score <= -za, so the null hypo is rejected, so that m1 < m2\n")
+```
+
